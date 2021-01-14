@@ -1,6 +1,6 @@
-package be.sonck.crypto.rates.adapter.ses
+package be.sonck.crypto.adapter.ses
 
-import be.sonck.crypto.rates.adapter.environment.EnvironmentAdapter
+import be.sonck.crypto.adapter.environment.EnvironmentAdapter
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.sesv2.SesV2Client
 import java.util.function.Consumer

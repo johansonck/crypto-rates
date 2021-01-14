@@ -1,6 +1,6 @@
-package be.sonck.crypto.rates.adapter.sns
+package be.sonck.crypto.adapter.sns
 
-import be.sonck.crypto.rates.adapter.environment.EnvironmentAdapter
+import be.sonck.crypto.adapter.environment.EnvironmentAdapter
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.sns.SnsClient
 import software.amazon.awssdk.services.sns.model.PublishRequest

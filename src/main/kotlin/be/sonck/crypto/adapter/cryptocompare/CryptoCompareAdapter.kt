@@ -1,7 +1,7 @@
-package be.sonck.crypto.rates.adapter.cryptocompare
+package be.sonck.crypto.adapter.cryptocompare
 
-import be.sonck.crypto.rates.Coin
-import be.sonck.crypto.rates.adapter.environment.EnvironmentAdapter
+import be.sonck.crypto.adapter.environment.EnvironmentAdapter
+import be.sonck.crypto.model.Coin
 import org.springframework.http.HttpStatus
 import org.springframework.web.client.RestTemplate
 import java.math.BigDecimal

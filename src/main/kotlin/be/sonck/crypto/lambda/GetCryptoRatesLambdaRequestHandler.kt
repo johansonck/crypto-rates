@@ -1,5 +1,6 @@
-package be.sonck.crypto.rates
+package be.sonck.crypto.lambda
 
+import be.sonck.crypto.functional.GetCryptoRatesHandler
 import com.amazonaws.services.lambda.runtime.Context
 import com.amazonaws.services.lambda.runtime.RequestHandler
 

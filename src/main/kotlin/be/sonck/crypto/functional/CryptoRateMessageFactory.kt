@@ -1,27 +1,28 @@
-package be.sonck.crypto.rates
+package be.sonck.crypto.functional
 
-import be.sonck.crypto.rates.adapter.cryptocompare.CryptoCompareAdapter
-import be.sonck.crypto.rates.adapter.environment.EnvironmentAdapter
+import be.sonck.crypto.adapter.bitvavo.BitvavoAdapter
+import be.sonck.crypto.adapter.cryptocompare.CryptoCompareAdapter
+import be.sonck.crypto.model.Coin
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 class CryptoRateMessageFactory(
-        private val cryptoCompareAdapter: CryptoCompareAdapter = CryptoCompareAdapter(),
-        private val baselineSupplier: BaselineSupplier = BaselineSupplier(),
-        private val environmentAdapter: EnvironmentAdapter = EnvironmentAdapter()
+    private val cryptoCompareAdapter: CryptoCompareAdapter = CryptoCompareAdapter(),
+    private val baselineSupplier: BaselineSupplier = BaselineSupplier(),
+    private val bitvavoAdapter: BitvavoAdapter = BitvavoAdapter()
 ) {
     fun create(coin: Coin): String {
         val exchangeRate = cryptoCompareAdapter.getExchangeRate(coin)
-        val baseline = baselineSupplier.getBaseline(coin)
+        val baseline = baselineSupplier.apply(coin)
         val increaseFromBaseline = exchangeRate
                 .divide(baseline, 2, RoundingMode.HALF_EVEN)
                 .minus(BigDecimal.ONE)
                 .multiply(BigDecimal("100"))
                 .setScale(0, RoundingMode.HALF_EVEN)
 
-        val profit = environmentAdapter.getCoinsInWallet(coin).toBigDecimal()
+        val profit = bitvavoAdapter.getBalance(coin)
                 .let { exchangeRate.multiply(it).setScale(2, RoundingMode.HALF_EVEN) }
-                .minus(environmentAdapter.getEuroInvestedInCoin(coin).toBigDecimal())
+                .minus(bitvavoAdapter.getInvestedAmount(coin))
 
         return "De huidige waarde van 1 ${coin.name} is ${exchangeRate.formatCurrency()}. " +
                 "Dit is een " +

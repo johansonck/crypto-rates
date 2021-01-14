@@ -1,7 +1,7 @@
-package be.sonck.crypto.rates.adapter.environment
+package be.sonck.crypto.adapter.environment
 
-import be.sonck.crypto.rates.Coin
-import be.sonck.crypto.rates.toTitleCase
+import be.sonck.crypto.functional.toTitleCase
+import be.sonck.crypto.model.Coin
 
 class EnvironmentAdapter {
 

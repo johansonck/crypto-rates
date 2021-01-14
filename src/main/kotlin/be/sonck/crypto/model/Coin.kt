@@ -1,4 +1,4 @@
-package be.sonck.crypto.rates
+package be.sonck.crypto.model
 
 enum class Coin {
     BTC, ETH

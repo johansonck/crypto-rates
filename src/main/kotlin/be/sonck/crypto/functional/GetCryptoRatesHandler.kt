@@ -1,9 +1,11 @@
-package be.sonck.crypto.rates
+package be.sonck.crypto.functional
+
+import be.sonck.crypto.model.Coin
 
 class GetCryptoRatesHandler(
-        private val messageDispatcher: MessageDispatcher = MessageDispatcher(),
-        private val cryptoRateMessageFactory: CryptoRateMessageFactory = CryptoRateMessageFactory(),
-        private val logHandler: (message: String) -> Unit = {}
+    private val messageDispatcher: MessageDispatcher = MessageDispatcher(),
+    private val cryptoRateMessageFactory: CryptoRateMessageFactory = CryptoRateMessageFactory(),
+    private val logHandler: (message: String) -> Unit = {}
 ) : Runnable {
 
     override fun run() {

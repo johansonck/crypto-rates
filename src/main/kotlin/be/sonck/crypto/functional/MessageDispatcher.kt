@@ -1,8 +1,8 @@
-package be.sonck.crypto.rates
+package be.sonck.crypto.functional
 
-import be.sonck.crypto.rates.adapter.environment.EnvironmentAdapter
-import be.sonck.crypto.rates.adapter.ses.SesAdapter
-import be.sonck.crypto.rates.adapter.sns.SnsAdapter
+import be.sonck.crypto.adapter.environment.EnvironmentAdapter
+import be.sonck.crypto.adapter.ses.SesAdapter
+import be.sonck.crypto.adapter.sns.SnsAdapter
 import java.util.function.Consumer
 
 class MessageDispatcher(

@@ -1,4 +1,4 @@
-package be.sonck.crypto.rates
+package be.sonck.crypto.functional
 
 import java.math.BigDecimal
 import java.text.NumberFormat

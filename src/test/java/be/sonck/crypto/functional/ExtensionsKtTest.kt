@@ -1,4 +1,4 @@
-package be.sonck.crypto.rates
+package be.sonck.crypto.functional
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

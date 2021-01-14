@@ -1,4 +1,4 @@
-package be.sonck.crypto.rates.adapter.cryptocompare
+package be.sonck.crypto.adapter.cryptocompare
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.math.BigDecimal
