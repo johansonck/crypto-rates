@@ -12,7 +12,7 @@ import java.math.RoundingMode
 
 class BitvavoAdapter(
     private val objectMapper: ObjectMapper = jacksonObjectMapper(),
-    private val bitvavoFactory: BitvavoFactory = BitvavoFactory()
+    private val bitvavoSupplier: BitvavoSupplier = BitvavoSupplier()
 ) {
 
     fun getOrders(coin: Coin): List<Order> =
@@ -60,5 +60,5 @@ class BitvavoAdapter(
     private fun bigDecimal(value: String, scale: Int) =
         BigDecimal(value).setScale(scale, RoundingMode.HALF_EVEN)
 
-    private fun bitvavo() = bitvavoFactory.get()
+    private fun bitvavo() = bitvavoSupplier.get()
 }

@@ -1,18 +1,16 @@
 package be.sonck.crypto.functional
 
 import be.sonck.crypto.adapter.bitvavo.BitvavoAdapter
-import be.sonck.crypto.adapter.cryptocompare.CryptoCompareAdapter
 import be.sonck.crypto.model.Coin
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 class CryptoRateMessageFactory(
-    private val cryptoCompareAdapter: CryptoCompareAdapter = CryptoCompareAdapter(),
     private val baselineSupplier: BaselineSupplier = BaselineSupplier(),
     private val bitvavoAdapter: BitvavoAdapter = BitvavoAdapter()
 ) {
     fun create(coin: Coin): String {
-        val exchangeRate = cryptoCompareAdapter.getExchangeRate(coin)
+        val exchangeRate = bitvavoAdapter.getTickerPrice(coin)
         val baseline = baselineSupplier.apply(coin)
         val increaseFromBaseline = exchangeRate
                 .divide(baseline, 2, RoundingMode.HALF_EVEN)

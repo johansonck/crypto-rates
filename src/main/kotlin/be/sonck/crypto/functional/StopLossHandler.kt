@@ -25,25 +25,33 @@ class StopLossHandler(
         log.info("done")
     }
 
-    fun sellIfNoMoreProfit(coin: Coin) {
-        val baseline = (baselineSupplier.apply(coin) ?: return)
-            .apply { log.debug("baseline=$this") }
+    private fun sellIfNoMoreProfit(coin: Coin) {
+        val stopLossPrice = getStopLossPrice(coin) ?: return
         val tickerPrice = bitvavoAdapter.getTickerPrice(coin)
-            .apply { log.debug("tickerPrice=$this") }
-        val stopLossPrice = baseline.multiply(
-            BigDecimal.ONE.plus(
-                BigDecimal(MINIMUM_PROFIT).divide(BigDecimal(100), 2, RoundingMode.HALF_EVEN)
-            )
-        ).setScale(2, RoundingMode.HALF_EVEN)
-            .apply { log.debug("stopLossPrice=$this") }
 
-        if (stopLossPrice >= tickerPrice) {
+        if (stopLossPrice < tickerPrice) {
+            log.info("De prijs van ${coin.name} ($tickerPrice) ligt nog boven je stop-loss prijs ($stopLossPrice).")
+        } else {
             log.debug("sending mail for $coin")
-//            sesAdapter.accept("De prijs van ${coin.name} ($tickerPrice) is onder je stop-loss prijs ($stopLossPrice) gegaan. Alles wordt verkocht.")
+            sesAdapter.accept("De prijs van ${coin.name} ($tickerPrice) is onder je stop-loss prijs ($stopLossPrice) gegaan. Alles wordt verkocht.")
             log.debug("sent mail for $coin")
-//            bitvavoAdapter.sell(coin, bitvavoAdapter.getBalance(coin))
+
+            bitvavoAdapter.getBalance(coin)
+                ?.also { balance ->
+                    bitvavoAdapter.sell(coin, balance)
+                    log.warn("SOLD $coin $balance")
+                }
         }
     }
+
+    private fun getStopLossPrice(coin: Coin): BigDecimal? =
+        baselineSupplier.apply(coin)
+            ?.multiply(
+                BigDecimal.ONE.plus(
+                    BigDecimal(MINIMUM_PROFIT).divide(BigDecimal(100), 2, RoundingMode.HALF_EVEN)
+                )
+            )
+            ?.setScale(2, RoundingMode.HALF_EVEN)
 }
 
 fun main() {

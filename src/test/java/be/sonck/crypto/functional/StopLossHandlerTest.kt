@@ -28,7 +28,7 @@ internal class StopLossHandlerTest {
     }
 
     @Test
-    fun panicSellEth() {
+    fun sellAllEth() {
         val bitvavoAdapter = mockk<BitvavoAdapter>(relaxed = true)
         val baselineSupplier = mockk<BaselineSupplier>(relaxed = true)
         val sesAdapter = mockk<SesAdapter>(relaxed = true)

@@ -16,11 +16,11 @@ internal class BitvavoAdapterTest {
     @Disabled
     fun testSell() {
         val bitvavo = mockk<Bitvavo>(relaxed = true)
-        val bitvavoFactory = mockk<BitvavoFactory>(relaxed = true)
+        val bitvavoSupplier = mockk<BitvavoSupplier>(relaxed = true)
 
-        every { bitvavoFactory.get() }.returns(bitvavo)
+        every { bitvavoSupplier.get() }.returns(bitvavo)
 
-        BitvavoAdapter(bitvavoFactory = bitvavoFactory).sell(Coin.BTC, BigDecimal("0.00000200"))
+        BitvavoAdapter(bitvavoSupplier = bitvavoSupplier).sell(Coin.BTC, BigDecimal("0.00000200"))
 
         verify { bitvavo.placeOrder("BTC-EUR", "sell", "market", JSONObject().put("amount", "0.00000200")) }
     }
