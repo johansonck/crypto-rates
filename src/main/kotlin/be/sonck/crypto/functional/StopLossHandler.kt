@@ -1,6 +1,7 @@
 package be.sonck.crypto.functional
 
 import be.sonck.crypto.adapter.bitvavo.BitvavoAdapter
+import be.sonck.crypto.adapter.environment.EnvironmentAdapter
 import be.sonck.crypto.adapter.ses.SesAdapter
 import be.sonck.crypto.model.Coin
 import org.slf4j.Logger
@@ -12,12 +13,9 @@ class StopLossHandler(
     private val bitvavoAdapter: BitvavoAdapter = BitvavoAdapter(),
     private val baselineSupplier: BaselineSupplier = BaselineSupplier(),
     private val sesAdapter: SesAdapter = SesAdapter(),
+    private val environmentAdapter: EnvironmentAdapter = EnvironmentAdapter(),
     private val log: Logger = LoggerFactory.getLogger(StopLossHandler::class.java)
 ) : Runnable {
-
-    companion object {
-        const val MINIMUM_PROFIT = 25
-    }
 
     override fun run() {
         log.info("start")
@@ -44,14 +42,15 @@ class StopLossHandler(
         }
     }
 
-    private fun getStopLossPrice(coin: Coin): BigDecimal? =
-        baselineSupplier.apply(coin)
-            ?.multiply(
-                BigDecimal.ONE.plus(
-                    BigDecimal(MINIMUM_PROFIT).divide(BigDecimal(100), 2, RoundingMode.HALF_EVEN)
-                )
-            )
+    private fun getStopLossPrice(coin: Coin): BigDecimal? {
+        return baselineSupplier.apply(coin)
+            ?.multiply(BigDecimal.ONE.plus(minimumProfit().asPercentage()))
             ?.setScale(2, RoundingMode.HALF_EVEN)
+    }
+
+    private fun BigDecimal.asPercentage() = divide(BigDecimal(100), 2, RoundingMode.HALF_EVEN)
+
+    private fun minimumProfit() = BigDecimal(environmentAdapter.getValueOrBust("minimumProfit"))
 }
 
 fun main() {
