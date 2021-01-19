@@ -1,23 +1,25 @@
 package be.sonck.crypto.adapter.bitvavo
 
 import be.sonck.crypto.adapter.secrets.SecretsAdapter
+import be.sonck.crypto.model.Account
 import com.bitvavo.api.Bitvavo
 import org.json.JSONObject
-import java.util.function.Supplier
 
 class BitvavoSupplier(
-    secretsAdapter: SecretsAdapter = SecretsAdapter(),
-    account: String = "johan"
-) : Supplier<Bitvavo> {
+    private val secretsAdapter: SecretsAdapter = SecretsAdapter()
+) {
 
-    private var bitvavo: Bitvavo
+    private val bitvavos: Map<Account, Bitvavo> = mapOf(
+        Account.JOHAN to createBitvavo(Account.JOHAN),
+        Account.ZEPPELLA to createBitvavo(Account.ZEPPELLA)
+    )
 
-    init {
-        val apiKey = secretsAdapter.getValue("bitvavo", "api-key.$account")
-        val apiSecret = secretsAdapter.getValue("bitvavo", "api-secret.$account")
+    private fun createBitvavo(account: Account): Bitvavo {
+        val apiKey = secretsAdapter.getValue("bitvavo", "api-key.${account.stringValue}")
+        val apiSecret = secretsAdapter.getValue("bitvavo", "api-secret.${account.stringValue}")
 
-        bitvavo = Bitvavo(JSONObject("{ APIKEY: '$apiKey', APISECRET: '$apiSecret' }"))
+        return Bitvavo(JSONObject("{ APIKEY: '$apiKey', APISECRET: '$apiSecret' }"))
     }
 
-    override fun get() = bitvavo
+    fun get(account: Account) = bitvavos[account]!!
 }

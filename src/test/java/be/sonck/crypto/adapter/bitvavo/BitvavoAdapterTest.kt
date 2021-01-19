@@ -1,5 +1,6 @@
 package be.sonck.crypto.adapter.bitvavo
 
+import be.sonck.crypto.model.Account
 import be.sonck.crypto.model.Coin
 import com.bitvavo.api.Bitvavo
 import io.mockk.every
@@ -18,9 +19,9 @@ internal class BitvavoAdapterTest {
         val bitvavo = mockk<Bitvavo>(relaxed = true)
         val bitvavoSupplier = mockk<BitvavoSupplier>(relaxed = true)
 
-        every { bitvavoSupplier.get() }.returns(bitvavo)
+        every { bitvavoSupplier.get(Account.ZEPPELLA) }.returns(bitvavo)
 
-        BitvavoAdapter(bitvavoSupplier = bitvavoSupplier).sell(Coin.BTC, BigDecimal("0.00000200"))
+        BitvavoAdapter(bitvavoSupplier = bitvavoSupplier).sell(Account.ZEPPELLA, Coin.BTC, BigDecimal("0.00000200"))
 
         verify { bitvavo.placeOrder("BTC-EUR", "sell", "market", JSONObject().put("amount", "0.00000200")) }
     }

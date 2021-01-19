@@ -1,5 +1,6 @@
 package be.sonck.crypto.functional
 
+import be.sonck.crypto.model.Account
 import be.sonck.crypto.model.Coin
 
 class GetCryptoRatesHandler(
@@ -9,8 +10,8 @@ class GetCryptoRatesHandler(
 ) : Runnable {
 
     override fun run() {
-        val message = listOf(Coin.BTC, Coin.ETH).joinToString("\n\n") {
-            cryptoRateMessageFactory.create(it)
+        val message = Coin.values().joinToString("\n\n") {
+            cryptoRateMessageFactory.create(Account.JOHAN, it)
         }
 
         logHandler.invoke("sending message $message")

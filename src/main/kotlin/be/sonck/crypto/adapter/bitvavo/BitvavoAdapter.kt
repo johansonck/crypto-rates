@@ -1,5 +1,6 @@
 package be.sonck.crypto.adapter.bitvavo
 
+import be.sonck.crypto.model.Account
 import be.sonck.crypto.model.Coin
 import be.sonck.crypto.model.Order
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -15,8 +16,9 @@ class BitvavoAdapter(
     private val bitvavoSupplier: BitvavoSupplier = BitvavoSupplier()
 ) {
 
-    fun getOrders(coin: Coin): List<Order> =
-        bitvavo().getOrders("$coin-EUR", JSONObject())
+    fun getOrders(account: Account, coin: Coin): List<Order> =
+        bitvavo(account)
+            .getOrders("$coin-EUR", JSONObject())
             .let { objectMapper.readValue<List<GetOrdersResponse>>(it.toString()) }
             .map {
                 Order(
@@ -30,29 +32,32 @@ class BitvavoAdapter(
                 )
             }
 
-    fun getInvestedAmount(coin: Coin): BigDecimal =
-        getOrders(coin)
+    fun getInvestedAmount(account: Account, coin: Coin): BigDecimal =
+        getOrders(account, coin)
             .sumOf { it.fiatAmount.setScale(2, RoundingMode.HALF_EVEN) }
 
-    fun getBalance(coin: Coin): BigDecimal? =
-        bitvavo().balance(JSONObject().put("symbol", coin.name))
+    fun getBalance(account: Account, coin: Coin): BigDecimal? =
+        bitvavo(account)
+            .balance(JSONObject().put("symbol", coin.name))
             .let { objectMapper.readValue<List<GetBalanceResponse>>(it.toString()) }
             .map { bigDecimal(it.available, 8) }
             .firstOrNull()
 
-    fun getTickerPrice(coin: Coin): BigDecimal =
-        bitvavo().tickerPrice(JSONObject().put("market", coin.name + "-EUR"))
+    fun getTickerPrice(account: Account, coin: Coin): BigDecimal =
+        bitvavo(account)
+            .tickerPrice(JSONObject().put("market", coin.name + "-EUR"))
             .let { objectMapper.readValue<List<GetTickerPriceResponse>>(it.toString()) }
             .map { it.price.setScale(2, RoundingMode.HALF_EVEN) }
             .firstOrNull() ?: throw IllegalArgumentException("failed to find ticker price for $coin")
 
-    fun sell(coin: Coin, amount: BigDecimal) {
-        val response = bitvavo().placeOrder(
-            coin.name + "-EUR",
-            "sell",
-            "market",
-            JSONObject().put("amount", amount.toPlainString())
-        )
+    fun sell(account: Account, coin: Coin, amount: BigDecimal) {
+        val response = bitvavo(account)
+            .placeOrder(
+                coin.name + "-EUR",
+                "sell",
+                "market",
+                JSONObject().put("amount", amount.toPlainString())
+            )
 
         println(response)
     }
@@ -60,5 +65,5 @@ class BitvavoAdapter(
     private fun bigDecimal(value: String, scale: Int) =
         BigDecimal(value).setScale(scale, RoundingMode.HALF_EVEN)
 
-    private fun bitvavo() = bitvavoSupplier.get()
+    private fun bitvavo(account: Account) = bitvavoSupplier.get(account)
 }

@@ -3,6 +3,7 @@ package be.sonck.crypto.functional
 import be.sonck.crypto.adapter.bitvavo.BitvavoAdapter
 import be.sonck.crypto.adapter.environment.EnvironmentAdapter
 import be.sonck.crypto.adapter.ses.SesAdapter
+import be.sonck.crypto.model.Account
 import be.sonck.crypto.model.Coin
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -19,13 +20,15 @@ class StopLossHandler(
 
     override fun run() {
         log.info("start")
-        listOf(Coin.BTC, Coin.ETH).forEach { sellIfNoMoreProfit(it) }
+        Coin.values().forEach { coin ->
+            sellIfNoMoreProfit(Account.JOHAN, coin)
+        }
         log.info("done")
     }
 
-    private fun sellIfNoMoreProfit(coin: Coin) {
-        val stopLossPrice = getStopLossPrice(coin) ?: return
-        val tickerPrice = bitvavoAdapter.getTickerPrice(coin)
+    private fun sellIfNoMoreProfit(account: Account, coin: Coin) {
+        val stopLossPrice = getStopLossPrice(account, coin) ?: return
+        val tickerPrice = bitvavoAdapter.getTickerPrice(account, coin)
 
         if (stopLossPrice < tickerPrice) {
             log.info("De prijs van ${coin.name} ($tickerPrice) ligt nog boven je stop-loss prijs ($stopLossPrice).")
@@ -34,16 +37,16 @@ class StopLossHandler(
             sesAdapter.accept("De prijs van ${coin.name} ($tickerPrice) is onder je stop-loss prijs ($stopLossPrice) gegaan. Alles wordt verkocht.")
             log.debug("sent mail for $coin")
 
-            bitvavoAdapter.getBalance(coin)
+            bitvavoAdapter.getBalance(account, coin)
                 ?.also { balance ->
-                    bitvavoAdapter.sell(coin, balance)
+                    bitvavoAdapter.sell(account, coin, balance)
                     log.warn("SOLD $coin $balance")
                 }
         }
     }
 
-    private fun getStopLossPrice(coin: Coin): BigDecimal? {
-        return baselineSupplier.apply(coin)
+    private fun getStopLossPrice(account: Account, coin: Coin): BigDecimal? {
+        return baselineSupplier.get(account, coin)
             ?.multiply(BigDecimal.ONE.plus(minimumProfit().asPercentage()))
             ?.setScale(2, RoundingMode.HALF_EVEN)
     }
