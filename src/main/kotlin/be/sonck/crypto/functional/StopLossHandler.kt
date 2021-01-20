@@ -20,40 +20,31 @@ class StopLossHandler(
 
     override fun run() {
         log.info("start")
-        Coin.values().forEach { coin ->
-            sellIfNoMoreProfit(Account.JOHAN, coin)
-        }
+        Coin.values().forEach { sellIfNoMoreProfit(coin = it) }
         log.info("done")
     }
 
-    private fun sellIfNoMoreProfit(account: Account, coin: Coin) {
-        val stopLossPrice = getStopLossPrice(account, coin) ?: return
+    private fun sellIfNoMoreProfit(account: Account = Account.JOHAN, coin: Coin) {
+        val balance = bitvavoAdapter.getBalance(account, coin) ?: return
+        val stopLossPrice = getStopLossPrice(coin)
         val tickerPrice = bitvavoAdapter.getTickerPrice(account, coin)
 
         if (stopLossPrice < tickerPrice) {
             log.info("De prijs van ${coin.name} ($tickerPrice) ligt nog boven je stop-loss prijs ($stopLossPrice).")
-        } else {
-            log.debug("sending mail for $coin")
-            sesAdapter.accept("De prijs van ${coin.name} ($tickerPrice) is onder je stop-loss prijs ($stopLossPrice) gegaan. Alles wordt verkocht.")
-            log.debug("sent mail for $coin")
-
-            bitvavoAdapter.getBalance(account, coin)
-                ?.also { balance ->
-                    bitvavoAdapter.sell(account, coin, balance)
-                    log.warn("SOLD $coin $balance")
-                }
+            return
         }
+
+        log.debug("sending mail for $coin")
+        sesAdapter.accept("De prijs van ${coin.name} ($tickerPrice) is onder je stop-loss prijs ($stopLossPrice) gegaan. Alles wordt verkocht.")
+        log.debug("sent mail for $coin")
+
+        bitvavoAdapter.sell(account, coin, balance)
+        log.warn("SOLD $coin $balance")
     }
 
-    private fun getStopLossPrice(account: Account, coin: Coin): BigDecimal? {
-        return baselineSupplier.get(account, coin)
-            ?.multiply(BigDecimal.ONE.plus(minimumProfit().asPercentage()))
-            ?.setScale(2, RoundingMode.HALF_EVEN)
-    }
-
-    private fun BigDecimal.asPercentage() = divide(BigDecimal(100), 2, RoundingMode.HALF_EVEN)
-
-    private fun minimumProfit() = BigDecimal(environmentAdapter.getValueOrBust("minimumProfit"))
+    private fun getStopLossPrice(coin: Coin) =
+        environmentAdapter.getValueOrBust("stopLossPrice$coin")
+            .let { BigDecimal(it).setScale(2, RoundingMode.HALF_EVEN) }
 }
 
 fun main() {

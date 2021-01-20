@@ -7,13 +7,16 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import org.json.JSONObject
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
 
 
 class BitvavoAdapter(
     private val objectMapper: ObjectMapper = jacksonObjectMapper(),
-    private val bitvavoSupplier: BitvavoSupplier = BitvavoSupplier()
+    private val bitvavoSupplier: BitvavoSupplier = BitvavoSupplier(),
+    private val log: Logger = LoggerFactory.getLogger(BitvavoAdapter::class.java)
 ) {
 
     fun getOrders(account: Account, coin: Coin): List<Order> =
@@ -60,6 +63,20 @@ class BitvavoAdapter(
             )
 
         println(response)
+    }
+
+    fun createStopLossOrder(account: Account, coin: Coin, triggerPrice: BigDecimal) {
+        bitvavo(account)
+            .placeOrder(
+                "${coin.name}-EUR",
+                "sell",
+                "stopLoss",
+                JSONObject()
+                    .put("amount", getBalance(account, coin)!!.toPlainString())
+                    .put("triggerAmount", triggerPrice.toPlainString())
+                    .put("triggerType", "price")
+                    .put("triggerReference", "lastTrade")
+            ).apply { log.warn(toString()) }
     }
 
     private fun bigDecimal(value: String, scale: Int) =

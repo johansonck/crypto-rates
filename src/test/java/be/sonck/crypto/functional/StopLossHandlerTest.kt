@@ -23,15 +23,14 @@ internal class StopLossHandlerTest {
 
     @BeforeEach
     fun setup() {
-        every { environmentAdapter.getValueOrBust("minimumProfit") }.returns("25")
+        every { environmentAdapter.getValueOrBust("stopLossPriceBTC") }.returns("25000")
+        every { environmentAdapter.getValueOrBust("stopLossPriceETH") }.returns("750")
 
         stopLossHandler = StopLossHandler(bitvavoAdapter, baselineSupplier, sesAdapter, environmentAdapter)
     }
 
     @Test
     fun stillMakingProfit() {
-        every { baselineSupplier.get(Account.JOHAN, Coin.BTC) }.returns(BigDecimal("15000.00"))
-        every { baselineSupplier.get(Account.JOHAN, Coin.ETH) }.returns(BigDecimal("500.00"))
         every { bitvavoAdapter.getTickerPrice(Account.JOHAN, Coin.BTC) }.returns(BigDecimal("29000.00"))
         every { bitvavoAdapter.getTickerPrice(Account.JOHAN, Coin.ETH) }.returns(BigDecimal("900.00"))
 
@@ -42,9 +41,7 @@ internal class StopLossHandlerTest {
 
     @Test
     fun sellAllEth() {
-        every { baselineSupplier.get(Account.JOHAN, Coin.BTC) }.returns(BigDecimal("15000.00"))
-        every { baselineSupplier.get(Account.JOHAN, Coin.ETH) }.returns(BigDecimal("500.00"))
-        every { bitvavoAdapter.getTickerPrice(Account.JOHAN, Coin.BTC) }.returns(BigDecimal("29000.00"))
+        every { bitvavoAdapter.getTickerPrice(Account.JOHAN, Coin.BTC) }.returns(BigDecimal("26000.00"))
         every { bitvavoAdapter.getTickerPrice(Account.JOHAN, Coin.ETH) }.returns(BigDecimal("540.00"))
         every { bitvavoAdapter.getBalance(Account.JOHAN, Coin.ETH) }.returns(BigDecimal("1.23456789"))
 
