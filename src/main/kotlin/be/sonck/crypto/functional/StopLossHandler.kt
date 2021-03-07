@@ -20,13 +20,17 @@ class StopLossHandler(
 
     override fun run() {
         log.info("start")
-        Coin.values().forEach { sellIfNoMoreProfit(coin = it) }
+        Account.values().forEach { account ->
+            Coin.values().forEach { coin ->
+                sellIfNoMoreProfit(account, coin)
+            }
+        }
         log.info("done")
     }
 
     private fun sellIfNoMoreProfit(account: Account = Account.JOHAN, coin: Coin) {
         val balance = bitvavoAdapter.getBalance(account, coin) ?: return
-        val stopLossPrice = getStopLossPrice(coin)
+        val stopLossPrice = getStopLossPrice(account, coin)
         val tickerPrice = bitvavoAdapter.getTickerPrice(account, coin)
 
         if (stopLossPrice < tickerPrice) {
@@ -42,8 +46,8 @@ class StopLossHandler(
         log.warn("SOLD $coin $balance")
     }
 
-    private fun getStopLossPrice(coin: Coin) =
-        environmentAdapter.getValueOrBust("stopLossPrice$coin")
+    private fun getStopLossPrice(account: Account, coin: Coin) =
+        environmentAdapter.getValueOrBust("stopLossPrice_${coin}_$account")
             .let { BigDecimal(it).setScale(2, RoundingMode.HALF_EVEN) }
 }
 

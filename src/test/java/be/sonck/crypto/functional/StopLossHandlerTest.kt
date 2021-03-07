@@ -26,14 +26,24 @@ internal class StopLossHandlerTest {
         every { environmentAdapter.getValueOrBust("stopLossPriceBTC") }.returns("25000")
         every { environmentAdapter.getValueOrBust("stopLossPriceETH") }.returns("750")
 
+        every { environmentAdapter.getValueOrBust("stopLossPrice_BTC_JOHAN") }.returns("25000")
+        every { environmentAdapter.getValueOrBust("stopLossPrice_ETH_JOHAN") }.returns("750")
+        every { environmentAdapter.getValueOrBust("stopLossPrice_BTC_ZEPPELLA") }.returns("30000")
+
+        every { bitvavoAdapter.getTickerPrice(Account.JOHAN, Coin.BTC) }.returns(BigDecimal("31000.00"))
+        every { bitvavoAdapter.getTickerPrice(Account.JOHAN, Coin.ETH) }.returns(BigDecimal("900.00"))
+        every { bitvavoAdapter.getTickerPrice(Account.ZEPPELLA, Coin.BTC) }.returns(BigDecimal("31000.00"))
+
+        every { bitvavoAdapter.getBalance(Account.JOHAN, Coin.ETH) }.returns(BigDecimal("1.23456789"))
+        every { bitvavoAdapter.getBalance(Account.JOHAN, Coin.BTC) }.returns(BigDecimal("1.23456789"))
+        every { bitvavoAdapter.getBalance(Account.ZEPPELLA, Coin.BTC) }.returns(BigDecimal("1.23456789"))
+        every { bitvavoAdapter.getBalance(Account.ZEPPELLA, Coin.ETH) }.returns(null)
+
         stopLossHandler = StopLossHandler(bitvavoAdapter, baselineSupplier, sesAdapter, environmentAdapter)
     }
 
     @Test
     fun stillMakingProfit() {
-        every { bitvavoAdapter.getTickerPrice(Account.JOHAN, Coin.BTC) }.returns(BigDecimal("29000.00"))
-        every { bitvavoAdapter.getTickerPrice(Account.JOHAN, Coin.ETH) }.returns(BigDecimal("900.00"))
-
         stopLossHandler.run()
 
         verify(exactly = 0) { sesAdapter.accept(any()) }
@@ -41,14 +51,25 @@ internal class StopLossHandlerTest {
 
     @Test
     fun sellAllEth() {
-        every { bitvavoAdapter.getTickerPrice(Account.JOHAN, Coin.BTC) }.returns(BigDecimal("26000.00"))
         every { bitvavoAdapter.getTickerPrice(Account.JOHAN, Coin.ETH) }.returns(BigDecimal("540.00"))
-        every { bitvavoAdapter.getBalance(Account.JOHAN, Coin.ETH) }.returns(BigDecimal("1.23456789"))
 
         stopLossHandler.run()
 
         verify(exactly = 1) { sesAdapter.accept(any()) }
         verify { bitvavoAdapter.sell(Account.JOHAN, Coin.ETH, BigDecimal("1.23456789")) }
         verify(exactly = 0) { bitvavoAdapter.sell(Account.JOHAN, Coin.BTC, any()) }
+        verify(exactly = 0) { bitvavoAdapter.sell(Account.ZEPPELLA, Coin.BTC, any()) }
+    }
+
+    @Test
+    fun sellAllBtcZeppella() {
+        every { bitvavoAdapter.getTickerPrice(any(), eq(Coin.BTC)) }.returns(BigDecimal("26000.00"))
+
+        stopLossHandler.run()
+
+        verify(exactly = 1) { sesAdapter.accept(any()) }
+        verify { bitvavoAdapter.sell(Account.ZEPPELLA, Coin.BTC, BigDecimal("1.23456789")) }
+        verify(exactly = 0) { bitvavoAdapter.sell(Account.JOHAN, Coin.BTC, any()) }
+        verify(exactly = 0) { bitvavoAdapter.sell(Account.JOHAN, Coin.ETH, any()) }
     }
 }
